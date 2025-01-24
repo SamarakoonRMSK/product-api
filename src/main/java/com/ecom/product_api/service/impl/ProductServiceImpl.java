@@ -2,7 +2,9 @@ package com.ecom.product_api.service.impl;
 
 import com.ecom.product_api.dto.request.RequestProductDto;
 import com.ecom.product_api.dto.response.ResponseProductDto;
+import com.ecom.product_api.dto.response.paginate.ResponseProductPaginate;
 import com.ecom.product_api.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,8 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 
 @Service
-@Transactional
+//@Transactional
 public class ProductServiceImpl implements ProductService {
+
     @Override
     public void createProduct(RequestProductDto dto, MultipartFile file) {
 
@@ -33,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseProductDto searchAllProducts(String searchText, int page, int size) {
+    public ResponseProductPaginate searchAllProducts(String searchText, int page, int size) {
         return null;
     }
 
@@ -41,6 +44,7 @@ public class ProductServiceImpl implements ProductService {
     public void updateImage(String imageId, MultipartFile file) {
 
     }
+
     @Override
     public void deleteImage(String imageId) {
 
