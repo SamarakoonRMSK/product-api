@@ -17,6 +17,7 @@ import com.ecom.product_api.util.FileDataExtractor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -124,16 +125,54 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseProductPaginate searchAllProducts(String searchText, int page, int size) {
-        return null;
+        return ResponseProductPaginate.builder()
+                .count(productRepo.searchCount(searchText))
+                .dataList(
+                        productRepo.search(searchText, PageRequest.of(page, size)).stream().map(this::convert).toList()
+                )
+                .build();
     }
 
     @Override
     public void updateImage(String imageId, MultipartFile file) {
+        Optional<Images> selectedImageData = imageRepo.findById(imageId);
+        if (selectedImageData.isEmpty()) {
+            throw new EntryNotFoundException("image not found");
+        }
 
+        deleteImage(imageId);
+
+        Optional<Product> selectedProductData = productRepo.findById(selectedImageData.get().getProduct().getProductId());
+        if (selectedProductData.isEmpty()) {
+            throw new EntryNotFoundException("product not found");
+        }
+
+        CommonFileSavedBinaryDataDto resource = null;
+        try {
+            resource = fileService.create(file, "abc/images/srilanka/", bucketName);
+            imageRepo.save(Images.builder()
+                    .fileResource(
+                            new FileResource(
+                                    resource.getHash(), resource.getFileName(),
+                                    resource.getResourceUrl(), resource.getDirectory()
+                            )
+                    )
+                    .id(UUID.randomUUID().toString())
+                    .build());
+
+        } catch (SQLException | IOException e) {
+            fileService.delete(fileDataExtractor.blobToString(resource.getDirectory()),
+                    fileDataExtractor.blobToString(resource.getFileName()), bucketName);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void deleteImage(String imageId) {
-
+        Optional<Images> selectedImageData = imageRepo.findById(imageId);
+        if (selectedImageData.isEmpty()) {
+            throw new EntryNotFoundException("image not found");
+        }
+        imageRepo.deleteById(imageId);
     }
 }
