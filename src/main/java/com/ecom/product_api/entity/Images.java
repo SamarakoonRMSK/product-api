@@ -11,7 +11,7 @@ import lombok.*;
 @Builder
 public class Images {
     @Id
-    private int id;
+    private String id;
     @Embedded
     private FileResource fileResource;
     @ManyToOne
